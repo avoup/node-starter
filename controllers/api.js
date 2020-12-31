@@ -1,6 +1,5 @@
 const { promisify } = require('util');
 const cheerio = require('cheerio');
-const { LastFmNode } = require('lastfm');
 const tumblr = require('tumblr.js');
 const { Octokit } = require('@octokit/rest');
 const Twitter = require('twitter-lite');
@@ -12,10 +11,7 @@ const lob = require('lob')(process.env.LOB_KEY);
 const ig = require('instagram-node').instagram();
 const axios = require('axios');
 const { google } = require('googleapis');
-const Quickbooks = require('node-quickbooks');
 const validator = require('validator');
-
-Quickbooks.setOauthVersion('2.0');
 
 /**
  * GET /api
@@ -134,20 +130,6 @@ exports.getGithub = async (req, res, next) => {
   }
 };
 
-exports.getQuickbooks = (req, res) => {
-  const token = req.user.tokens.find((token) => token.kind === 'quickbooks');
-
-  const qbo = new Quickbooks(process.env.QUICKBOOKS_CLIENT_ID, process.env.QUICKBOOKS_CLIENT_SECRET,
-    token.accessToken, false, req.user.quickbooks, true, false, null, '2.0', token.refreshToken);
-
-  qbo.findCustomers((_, customers) => {
-    res.render('api/quickbooks', {
-      title: 'Quickbooks API',
-      customers: customers.QueryResponse.Customer
-    });
-  });
-};
-
 /**
  * GET /api/nyt
  * New York Times API example.
@@ -166,89 +148,6 @@ exports.getNewYorkTimes = (req, res, next) => {
       const message = JSON.stringify(err.response.data.fault);
       next(new Error(`New York Times API - ${err.response.status} ${err.response.statusText} ${message}`));
     });
-};
-
-/**
- * GET /api/lastfm
- * Last.fm API example.
- */
-exports.getLastfm = async (req, res, next) => {
-  const lastfm = new LastFmNode({
-    api_key: process.env.LASTFM_KEY,
-    secret: process.env.LASTFM_SECRET
-  });
-  const getArtistInfo = () =>
-    new Promise((resolve, reject) => {
-      lastfm.request('artist.getInfo', {
-        artist: 'Roniit',
-        handlers: {
-          success: resolve,
-          error: reject
-        }
-      });
-    });
-  const getArtistTopTracks = () =>
-    new Promise((resolve, reject) => {
-      lastfm.request('artist.getTopTracks', {
-        artist: 'Roniit',
-        handlers: {
-          success: ({ toptracks }) => {
-            resolve(toptracks.track.slice(0, 10));
-          },
-          error: reject
-        }
-      });
-    });
-  const getArtistTopAlbums = () =>
-    new Promise((resolve, reject) => {
-      lastfm.request('artist.getTopAlbums', {
-        artist: 'Roniit',
-        handlers: {
-          success: ({ topalbums }) => {
-            resolve(topalbums.album.slice(0, 3));
-          },
-          error: reject
-        }
-      });
-    });
-  try {
-    const { artist: artistInfo } = await getArtistInfo();
-    const topTracks = await getArtistTopTracks();
-    const topAlbums = await getArtistTopAlbums();
-    const artist = {
-      name: artistInfo.name,
-      image: artistInfo.image ? artistInfo.image.slice(-1)[0]['#text'] : null,
-      tags: artistInfo.tags ? artistInfo.tags.tag : [],
-      bio: artistInfo.bio ? artistInfo.bio.summary : '',
-      stats: artistInfo.stats,
-      similar: artistInfo.similar ? artistInfo.similar.artist : [],
-      topTracks,
-      topAlbums
-    };
-    res.render('api/lastfm', {
-      title: 'Last.fm API',
-      artist
-    });
-  } catch (err) {
-    if (err.error !== undefined) {
-      console.error(err);
-      // see error code list: https://www.last.fm/api/errorcodes
-      switch (err.error) {
-        // potentially handle each code uniquely
-        case 10: // Invalid API key
-          res.render('api/lastfm', {
-            error: err
-          });
-          break;
-        default:
-          res.render('api/lastfm', {
-            error: err
-          });
-      }
-    } else {
-      next(err);
-    }
-  }
 };
 
 /**

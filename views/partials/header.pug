@@ -1,19 +1,20 @@
-.navbar.navbar-light.fixed-top.navbar-expand-lg.bg-light
-  .container
-    a.navbar-brand(href='/')
-      i.fas.fa-cube
-      | Project name
-    button.navbar-toggler(type='button', data-toggle='collapse', data-target='.navbar-collapse')
-      span.sr-only Toggle navigation
+nav.navbar.navbar-expand-md.navbar-light.bg-light(aria-label='navbar')
+  .container-fluid
+    a.navbar-brand(href='/') 
+      i.fas.fa-signature
+      |  CompanyName
+    button.navbar-toggler(type='button' data-bs-toggle='collapse' data-bs-target='#navbarsExample03' aria-controls='navbarsExample03' aria-expanded='false' aria-label='Toggle navigation')
       span.navbar-toggler-icon
-    .collapse.navbar-collapse
-      ul.nav.navbar-nav
+    #navbarsExample03.collapse.navbar-collapse
+      ul.navbar-nav.me-auto.mb-2.mb-md-0
         li.nav-item(class=(title === 'Home') ? 'active' : undefined)
           a.nav-link(href='/') Home
         li.nav-item(class=(title === 'API Examples') ? 'active' : undefined)
           a.nav-link(href='/api') API Examples
         li.nav-item(class=(title === 'Contact') ? 'active' : undefined)
           a.nav-link(href='/contact') Contact
+        li.nav-item(class=(title === 'About Us') ? 'active' : undefined)
+          a.nav-link(href='/about') About Us
         li.nav-item(class=(title === 'Status') ? 'active' : undefined)
           a.nav-link(href='/status') Status
       ul.nav.navbar-nav.ml-auto
@@ -23,15 +24,32 @@
           li.nav-item(class=(title === 'Create Account') ? 'active' : undefined)
             a.nav-link(href='/signup') Create Account
         else
-          li.dropdown(class=(title === 'Account Management') ? 'active' : undefined).nav-item
-            a.dropdown-toggle.nav-link(href='#', data-toggle='dropdown')
+          li.nav-item.dropdown
+            a#notifications.nav-link.dropdown-toggle(href='#' data-bs-toggle='dropdown' aria-expanded='false')
+              svg.bi.bi-bell(xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' viewBox='0 0 16 16')
+                path(d='M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2zM8 1.918l-.797.161A4.002 4.002 0 0 0 4 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4.002 4.002 0 0 0-3.203-3.92L8 1.917zM14.22 12c.223.447.481.801.78 1H1c.299-.199.557-.553.78-1C2.68 10.2 3 6.88 3 6c0-2.42 1.72-4.44 4.005-4.901a1 1 0 1 1 1.99 0A5.002 5.002 0 0 1 13 6c0 .88.32 4.2 1.22 6z')
+              if user.toSign
+                span.badge.rounded-pill.bg-success 
+                  | #{user.toSign.length}
+            if user.toSign           
+              ul.dropdown-menu
+                each val, index in user.toSign
+                  li
+                    a.dropdown-item Notification #{index}
+          li.nav-item.dropdown(class=(title === 'Account Management') ? 'active' : undefined)
+            a#dropdown03.nav-link.dropdown-toggle(href='#' data-bs-toggle='dropdown' aria-expanded='false')
               if user.profile.picture
                 img(src=user.profile.picture)
               else
-                img(src=user.gravatar(60))
-              span= user.profile.name || user.email || user.id
+                img(src=user.gravatar(30))
+              span.ms-1= user.profile.name || user.email || user.id
               i.caret
-            div.dropdown-menu
-              a.dropdown-item(href='/account') My Account
+            ul.dropdown-menu(aria-labelledby='dropdown03')
+              li
+                a.dropdown-item(href='/account') My Account
               div.dropdown-divider
-              a.dropdown-item(href='/logout') Logout
+              li
+                a.dropdown-item(href='/logout') Logout          
+
+.alert.alert-warning(role="alert").p-1.text-center
+  | For demonstration purposes only!
